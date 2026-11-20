@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EMJ Exclusive: Customer Insights Dashboard
 
-## Getting Started
+Read-only dashboard of customers and completed deals. Next.js 16 (App Router), TypeScript, Mantine 9, PostgreSQL 17, Docker Compose.
 
-First, run the development server:
+## Prerequisites
+
+- Docker Desktop (Docker Engine with Compose v2)
+- Node.js 24 LTS and npm, only for running outside Docker
+
+## Run with Docker
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
+docker compose up --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- App: http://localhost:3000
+- Health check (confirms the database is reachable): http://localhost:3000/api/health
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+On first start, Postgres runs the SQL files in `db/init/` in alphabetical order. They only run when the database volume is empty, so restarts do not duplicate seeded records. The app container waits until Postgres passes its healthcheck, which only passes once initialisation has finished.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Reset the local database
 
-## Learn More
+```bash
+docker compose down -v   # removes the database volume
+docker compose up --build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Run locally with hot reload
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm install
+docker compose up db     # database only
+npm run dev              # uses DATABASE_URL from .env (localhost:5432)
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tests
 
-## Deploy on Vercel
+```bash
+npm test
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Versions
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Node.js 24 (`node:24-alpine` image)
+- PostgreSQL 17 (`postgres:17` image)
+- Dependencies pinned by `package-lock.json`
+
+## Project structure
+
+```
+db/init/        Schema and seed SQL, run once on an empty volume
+src/server/     Database pool, queries and business rules (server only)
+src/app/        Pages and route handlers (presentation)
+```

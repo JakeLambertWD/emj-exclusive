@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistent storage: data survives restarts; `docker compose down -v` resets it
+      - pgdata:/var/lib/postgresql/data
+      # Schema + seed run once, only when the volume is empty, so restarts never duplicate records
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # -h localhost forces TCP, which Postgres only opens after the init scripts finish,
+      # so "healthy" means the data is loaded, not just that the container started
+      test: ["CMD-SHELL", "pg_isready -h localhost -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
