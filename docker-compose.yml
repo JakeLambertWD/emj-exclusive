@@ -1,22 +1,35 @@
 services:
   db:
-    image: postgres:17
+    # Matches the version and settings of the supplied assessment database pack
+    image: postgres:16.16-bookworm
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_DB:-customer_insights}
+      POSTGRES_USER: ${POSTGRES_USER:-assessment}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-assessment_local_only}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+      TZ: UTC
+      PGTZ: UTC
+    command: ["postgres", "-c", "timezone=UTC"]
     ports:
-      - "5432:5432"
+      # Host port 55432 avoids clashing with any Postgres already running on 5432
+      - "127.0.0.1:${POSTGRES_PORT:-55432}:5432"
     volumes:
       # Persistent storage: data survives restarts; `docker compose down -v` resets it
       - pgdata:/var/lib/postgresql/data
-      # Schema + seed run once, only when the volume is empty, so restarts never duplicate records
-      - ./db/init:/docker-entrypoint-initdb.d:ro
+      # Supplied schema, seed and verify scripts. They run in filename order, once,
+      # only when the volume is empty, so restarts never duplicate records.
+      - ./customer_insights_database/sql:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      # -h localhost forces TCP, which Postgres only opens after the init scripts finish,
-      # so "healthy" means the data is loaded, not just that the container started
-      test: ["CMD-SHELL", "pg_isready -h localhost -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
+      # Healthy only when Postgres accepts TCP connections AND the full seed is present,
+      # so "healthy" means the assessment data is loaded, not just that the container started
+      test:
+        - CMD-SHELL
+        - >-
+          pg_isready -h 127.0.0.1 -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+          && PGPASSWORD="$${POSTGRES_PASSWORD}" psql -X -h 127.0.0.1
+          -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -tAc
+          'SELECT count(*) = 3000 FROM public.deals' | grep -qx t
+      interval: 3s
       timeout: 5s
       retries: 20
       start_period: 10s
@@ -24,7 +37,7 @@ services:
   app:
     build: .
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-assessment}:${POSTGRES_PASSWORD:-assessment_local_only}@db:5432/${POSTGRES_DB:-customer_insights}
     ports:
       - "3000:3000"
     depends_on:

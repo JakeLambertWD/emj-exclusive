@@ -1,0 +1,33 @@
+name: customer-insights-assessment
+
+services:
+  db:
+    image: postgres:16.16-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-customer_insights}
+      POSTGRES_USER: ${POSTGRES_USER:-assessment}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-assessment_local_only}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+      TZ: UTC
+      PGTZ: UTC
+    command: ["postgres", "-c", "timezone=UTC"]
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - assessment_pgdata:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          pg_isready -h 127.0.0.1 -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+          && PGPASSWORD="$${POSTGRES_PASSWORD}" psql -X -h 127.0.0.1
+          -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}" -tAc
+          'SELECT count(*) = 3000 FROM public.deals' | grep -qx t
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  assessment_pgdata:

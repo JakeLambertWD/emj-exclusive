@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1,
+    "full_name": "Morgan Ellis",
+    "email": "staff01@example.com",
+    "role": "Concierge Manager",
+    "created_at": "2023-01-08T09:00:00Z"
+  },
+  {
+    "id": 2,
+    "full_name": "Priya Shah",
+    "email": "staff02@example.com",
+    "role": "Concierge Specialist",
+    "created_at": "2023-01-15T09:00:00Z"
+  },
+  {
+    "id": 3,
+    "full_name": "Sam Rowan",
+    "email": "staff03@example.com",
+    "role": "Relationship Manager",
+    "created_at": "2023-01-22T09:00:00Z"
+  },
+  {
+    "id": 4,
+    "full_name": "Daniel Brooks",
+    "email": "staff04@example.com",
+    "role": "Operations",
+    "created_at": "2023-01-29T09:00:00Z"
+  },
+  {
+    "id": 5,
+    "full_name": "Olivia Chen",
+    "email": "staff05@example.com",
+    "role": "Concierge Manager",
+    "created_at": "2023-02-05T09:00:00Z"
+  },
+  {
+    "id": 6,
+    "full_name": "Leo Grant",
+    "email": "staff06@example.com",
+    "role": "Concierge Specialist",
+    "created_at": "2023-02-12T09:00:00Z"
+  },
+  {
+    "id": 7,
+    "full_name": "Nina Patel",
+    "email": "staff07@example.com",
+    "role": "Relationship Manager",
+    "created_at": "2023-02-19T09:00:00Z"
+  },
+  {
+    "id": 8,
+    "full_name": "Elias Costa",
+    "email": "staff08@example.com",
+    "role": "Operations",
+    "created_at": "2023-02-26T09:00:00Z"
+  },
+  {
+    "id": 9,
+    "full_name": "Freya Walsh",
+    "email": "staff09@example.com",
+    "role": "Concierge Manager",
+    "created_at": "2023-03-05T09:00:00Z"
+  },
+  {
+    "id": 10,
+    "full_name": "Amir Noor",
+    "email": "staff10@example.com",
+    "role": "Concierge Specialist",
+    "created_at": "2023-03-12T09:00:00Z"
+  },
+  {
+    "id": 11,
+    "full_name": "Maya Reed",
+    "email": "staff11@example.com",
+    "role": "Relationship Manager",
+    "created_at": "2023-03-19T09:00:00Z"
+  },
+  {
+    "id": 12,
+    "full_name": "Theo Mason",
+    "email": "staff12@example.com",
+    "role": "Operations",
+    "created_at": "2023-03-26T09:00:00Z"
+  }
+]
