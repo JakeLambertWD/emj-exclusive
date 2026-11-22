@@ -13,9 +13,23 @@ export function StaffList({ staff }: { staff: StaffMember[] }) {
   const hiddenCount = staff.length - visible.length;
 
   return (
-    <Group gap={6} wrap="nowrap" title={staff.map((member) => member.name).join(", ")}>
+    <Group
+      gap={6}
+      wrap="nowrap"
+      title={staff.map((member) => member.name).join(", ")}
+      // As wide as the badges need, so the column grows to fit instead of overlapping the next one
+      style={{ width: "max-content" }}
+    >
       {visible.map((member) => (
-        <Badge key={member.id} variant="default" radius="sm" tt="none" fw={500}>
+        <Badge
+          key={member.id}
+          variant="default"
+          radius="sm"
+          tt="none"
+          fw={500}
+          // Don't shrink to fit the column; show the whole name and let the table scroll instead
+          style={{ flexShrink: 0, overflow: "visible" }}
+        >
           {member.name}
         </Badge>
       ))}

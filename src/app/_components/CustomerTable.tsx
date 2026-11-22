@@ -13,6 +13,7 @@ import {
   TableTr,
   Text,
 } from "@mantine/core";
+import { CustomerTableEmpty } from "./CustomerTableEmpty";
 import { CustomerTablePagination } from "./CustomerTablePagination";
 import { EmptyValue } from "./EmptyValue";
 import { SortableTh } from "./SortableTh";
@@ -20,7 +21,7 @@ import { StaffList } from "./StaffList";
 
 export async function CustomerTable({ searchParams }: { searchParams: Promise<SearchParams> }) {
   // Validated, typed values; anything invalid in the URL has already fallen back to its default
-  const { page: requestedPage, pageSize, sort, dir, category, staffId } = parseCustomerParams(await searchParams);
+  const { page: requestedPage, pageSize, sort, dir, category, staffId, q } = parseCustomerParams(await searchParams);
   const { customers, totalCount, page } = await getCustomers({
     page: requestedPage,
     pageSize,
@@ -29,6 +30,11 @@ export async function CustomerTable({ searchParams }: { searchParams: Promise<Se
     category,
     staffId,
   });
+
+  // Nothing came back: show why instead of an empty table
+  if (totalCount === 0) {
+    return <CustomerTableEmpty hasFilters={category !== null || staffId !== null || q !== ""} />;
+  }
 
   return (
     <>
