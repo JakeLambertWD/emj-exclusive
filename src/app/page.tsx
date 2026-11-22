@@ -1,23 +1,18 @@
-import { Container, Title } from "@mantine/core";
-import { Suspense } from "react";
-import { CustomerTable } from "./_components/CustomerTable";
-import { CustomerTableSkeleton } from "./_components/CustomerTableSkeleton";
+import { Container, Stack, Title } from "@mantine/core";
+import { CustomerTableContainer } from "./_components/CustomerTableContainer";
+import { StatCardsContainer } from "./_components/StatCardsContainer";
 
 export default function Home() {
   return (
-    <Container size="lg" py="xl">
-      <Title order={1} mb="md">
+    <Container size="xl" py="xl">
+      <Title order={1} mb="lg">
         Customers
       </Title>
 
-      {/*
-        CustomerTable waits on the database, so show a skeleton in its place.
-        The rest of the page loads immediately and the real table replaces
-        the skeleton once the data arrives.
-      */}
-      <Suspense fallback={<CustomerTableSkeleton />}>
-        <CustomerTable />
-      </Suspense>
+      <Stack gap="xl">
+        <StatCardsContainer />
+        <CustomerTableContainer />
+      </Stack>
     </Container>
   );
 }
