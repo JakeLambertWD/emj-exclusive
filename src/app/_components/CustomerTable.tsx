@@ -1,4 +1,5 @@
 import { getCustomers } from "@/server/customers/queries";
+import { formatGbp } from "@/utils/format";
 import {
   Table,
   TableScrollContainer,
@@ -13,14 +14,17 @@ import {
 export async function CustomerTable() {
   const customers = await getCustomers();
 
+
   return (
-    <TableScrollContainer minWidth={640}>
+    <TableScrollContainer minWidth={820}>
       <Table striped highlightOnHover>
         <TableThead>
           <TableTr>
             <TableTh>Customer</TableTh>
             <TableTh>Company</TableTh>
             <TableTh>Email</TableTh>
+            <TableTh ta="right">Total spend</TableTh>
+            <TableTh ta="right">Total deals</TableTh>
           </TableTr>
         </TableThead>
         <TableTbody>
@@ -35,6 +39,12 @@ export async function CustomerTable() {
                 )}
               </TableTd>
               <TableTd>{customer.email}</TableTd>
+              <TableTd ta="right" fw={600} style={{ fontVariantNumeric: "tabular-nums" }}>
+                {formatGbp(customer.totalSpend)}
+              </TableTd>
+              <TableTd ta="right" style={{ fontVariantNumeric: "tabular-nums" }}>
+                {customer.totalDeals}
+              </TableTd>
             </TableTr>
           ))}
         </TableTbody>
