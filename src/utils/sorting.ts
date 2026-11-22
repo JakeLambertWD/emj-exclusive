@@ -1,5 +1,3 @@
-import type { SearchParams } from "./pagination";
-
 // The columns the table can be sorted by
 export const SORT_FIELDS = ["name", "spend", "deals", "lastDeal"] as const;
 
@@ -25,25 +23,3 @@ export const FIRST_CLICK_DIRECTION: Record<SortField, SortDirection> = {
   deals: "desc",
   lastDeal: "desc",
 };
-
-// Is this URL value one of the sortable columns?
-function isSortField(value: unknown): value is SortField {
-  return SORT_FIELDS.some((field) => field === value);
-}
-
-// Is this URL value "asc" or "desc"?
-function isSortDirection(value: unknown): value is SortDirection {
-  return value === "asc" || value === "desc";
-}
-
-// Reads sort and dir from the URL, e.g. ?sort=spend&dir=desc.
-// Anything missing or unknown falls back to the default.
-// Proper validation with zod replaces this in Step 9.
-export function readSort(searchParams: SearchParams): Sort {
-  const { sort, dir } = searchParams;
-
-  return {
-    sort: isSortField(sort) ? sort : DEFAULT_SORT.sort,
-    dir: isSortDirection(dir) ? dir : DEFAULT_SORT.dir,
-  };
-}

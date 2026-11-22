@@ -1,8 +1,7 @@
 import { getCustomers } from "@/server/customers/get-customers";
-import { readFilters } from "@/utils/filters";
+import { parseCustomerParams } from "@/server/customers/params";
 import { formatGbp, formatUtcDate } from "@/utils/format";
-import { readPagination, type SearchParams } from "@/utils/pagination";
-import { readSort } from "@/utils/sorting";
+import type { SearchParams } from "@/utils/pagination";
 import {
   Badge,
   Table,
@@ -20,12 +19,16 @@ import { SortableTh } from "./SortableTh";
 import { StaffList } from "./StaffList";
 
 export async function CustomerTable({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  // Converts searchParams to 2 numbers 
-  const params = await searchParams;
-  const { page: requestedPage, pageSize } = readPagination(params);
-  const sort = readSort(params);
-  const filters = readFilters(params);
-  const { customers, totalCount, page } = await getCustomers({ page: requestedPage, pageSize, ...sort, ...filters });
+  // Validated, typed values; anything invalid in the URL has already fallen back to its default
+  const { page: requestedPage, pageSize, sort, dir, category, staffId } = parseCustomerParams(await searchParams);
+  const { customers, totalCount, page } = await getCustomers({
+    page: requestedPage,
+    pageSize,
+    sort,
+    dir,
+    category,
+    staffId,
+  });
 
   return (
     <>
@@ -33,14 +36,14 @@ export async function CustomerTable({ searchParams }: { searchParams: Promise<Se
         <Table striped highlightOnHover>
           <TableThead>
             <TableTr>
-              <SortableTh field="name" current={sort} label="Customer" />
+              <SortableTh field="name" current={{ sort, dir }} label="Customer" />
               <TableTh>Company</TableTh>
               <TableTh>Email</TableTh>
-              <SortableTh field="spend" current={sort} label="Total spend" align="right" />
-              <SortableTh field="deals" current={sort} label="Total deals" align="right" />
+              <SortableTh field="spend" current={{ sort, dir }} label="Total spend" align="right" />
+              <SortableTh field="deals" current={{ sort, dir }} label="Total deals" align="right" />
               <TableTh>Favourite category</TableTh>
               <TableTh>Associated staff</TableTh>
-              <SortableTh field="lastDeal" current={sort} label="Last deal (UTC)" />
+              <SortableTh field="lastDeal" current={{ sort, dir }} label="Last deal (UTC)" />
             </TableTr>
           </TableThead>
           <TableTbody>
