@@ -1,5 +1,6 @@
 import { db } from "@/server/db";
 import type { ProductCategory } from "@/server/db-types";
+import type { Pagination } from "@/utils/pagination";
 import { sql } from "kysely";
 import "server-only";
 
@@ -20,7 +21,36 @@ export type CustomerRow = {
   lastDealAt: Date | null;
 };
 
-export async function getCustomers(): Promise<CustomerRow[]> {
+export type CustomerPage = {
+  customers: CustomerRow[];
+  /** How many customers there are in total, across every page */
+  totalCount: number;
+  /** The page actually shown: a page past the end is moved back to the last page */
+  page: number;
+};
+
+export async function getCustomers({ page, pageSize }: Pagination): Promise<CustomerPage> {
+  // Count first, so a page past the end (e.g. ?page=99) can be moved back to the last real page
+  const totalCount = await countCustomers();
+  const lastPage = Math.max(1, Math.ceil(totalCount / pageSize));
+  const currentPage = Math.min(page, lastPage);
+
+  const customers = await getCustomerRows({ page: currentPage, pageSize });
+
+  return { customers, totalCount, page: currentPage };
+}
+
+// How many customers match, across every page
+async function countCustomers(): Promise<number> {
+  const { count } = await db
+    .selectFrom("customers")
+    .select(sql<number>`count(*)::int`.as("count"))
+    .executeTakeFirstOrThrow();
+
+  return count;
+}
+
+async function getCustomerRows({ page, pageSize }: Pagination): Promise<CustomerRow[]> {
   return (
     db
       // Step 1: total up each customer's completed deals
@@ -119,11 +149,14 @@ export async function getCustomers(): Promise<CustomerRow[]> {
         sql<StaffMember[]>`coalesce(cst.staff, '[]'::json)`.as("staff"),
         "ld.created_at as lastDealAt",
       ])
-      // Sort A to Z by name; id keeps customers with the same name in a fixed order
+      // Sort A to Z by name; id keeps customers with the same name in a fixed order.
+      // That fixed order is what makes paging reliable: no customer is skipped or repeated
       .orderBy("c.full_name")
       .orderBy("c.id")
-      // First page only
-      .limit(25)
+      // Only the rows for the requested page, e.g. page 2 of 25 skips 25 and takes the next 25.
+      // Kysely sends both numbers as query parameters ($1, $2), never pasted into the SQL
+      .limit(pageSize)
+      .offset((page - 1) * pageSize)
       .execute()
   );
 }
