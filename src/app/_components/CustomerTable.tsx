@@ -1,6 +1,7 @@
 import { getCustomers } from "@/server/customers/queries";
-import { formatGbp } from "@/utils/format";
+import { formatGbp, formatUtcDate } from "@/utils/format";
 import {
+  Badge,
   Table,
   TableScrollContainer,
   TableTbody,
@@ -10,13 +11,14 @@ import {
   TableTr,
   Text,
 } from "@mantine/core";
+import { EmptyValue } from "./EmptyValue";
+import { StaffList } from "./StaffList";
 
 export async function CustomerTable() {
   const customers = await getCustomers();
 
-
   return (
-    <TableScrollContainer minWidth={820}>
+    <TableScrollContainer minWidth={1180}>
       <Table striped highlightOnHover>
         <TableThead>
           <TableTr>
@@ -25,6 +27,9 @@ export async function CustomerTable() {
             <TableTh>Email</TableTh>
             <TableTh ta="right">Total spend</TableTh>
             <TableTh ta="right">Total deals</TableTh>
+            <TableTh>Favourite category</TableTh>
+            <TableTh>Associated staff</TableTh>
+            <TableTh>Last deal (UTC)</TableTh>
           </TableTr>
         </TableThead>
         <TableTbody>
@@ -45,19 +50,29 @@ export async function CustomerTable() {
               <TableTd ta="right" style={{ fontVariantNumeric: "tabular-nums" }}>
                 {customer.totalDeals}
               </TableTd>
+              <TableTd>
+                {customer.favouriteCategory ? (
+                  <Badge variant="light" color="gray" radius="sm" tt="none">
+                    {customer.favouriteCategory}
+                  </Badge>
+                ) : (
+                  <EmptyValue>None yet</EmptyValue>
+                )}
+              </TableTd>
+              <TableTd>
+                <StaffList staff={customer.staff} />
+              </TableTd>
+              <TableTd style={{ whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+                {customer.lastDealAt ? (
+                  formatUtcDate(customer.lastDealAt)
+                ) : (
+                  <EmptyValue>No completed deals</EmptyValue>
+                )}
+              </TableTd>
             </TableTr>
           ))}
         </TableTbody>
       </Table>
     </TableScrollContainer>
-  );
-}
-
-/** Shown while the table streams in. */
-export function CustomerTableSkeleton() {
-  return (
-    <Text c="dimmed" size="sm" aria-busy="true">
-      Loading customers…
-    </Text>
   );
 }
