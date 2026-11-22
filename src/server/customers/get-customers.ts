@@ -1,6 +1,7 @@
 import { db } from "@/server/db";
 import type { ProductCategory } from "@/server/db-types";
 import type { Pagination } from "@/utils/pagination";
+import type { Sort } from "@/utils/sorting";
 import { sql } from "kysely";
 import "server-only";
 
@@ -29,13 +30,15 @@ export type CustomerPage = {
   page: number;
 };
 
-export async function getCustomers({ page, pageSize }: Pagination): Promise<CustomerPage> {
+export type CustomerQuery = Pagination & Sort;
+
+export async function getCustomers({ page, pageSize, sort, dir }: CustomerQuery): Promise<CustomerPage> {
   // Count first, so a page past the end (e.g. ?page=99) can be moved back to the last real page
   const totalCount = await countCustomers();
   const lastPage = Math.max(1, Math.ceil(totalCount / pageSize));
   const currentPage = Math.min(page, lastPage);
 
-  const customers = await getCustomerRows({ page: currentPage, pageSize });
+  const customers = await getCustomerRows({ page: currentPage, pageSize, sort, dir });
 
   return { customers, totalCount, page: currentPage };
 }
@@ -50,7 +53,16 @@ async function countCustomers(): Promise<number> {
   return count;
 }
 
-async function getCustomerRows({ page, pageSize }: Pagination): Promise<CustomerRow[]> {
+// Each sort key maps to one fixed SQL expression. Only these strings ever reach ORDER BY,
+// so the URL can choose a column but can never inject SQL
+const SORT_COLUMNS = {
+  name: sql`c.full_name`,
+  spend: sql`coalesce(m.total_spend, 0)`,
+  deals: sql`coalesce(m.total_deals, 0)`,
+  lastDeal: sql`ld.created_at`,
+} as const;
+
+async function getCustomerRows({ page, pageSize, sort, dir }: CustomerQuery): Promise<CustomerRow[]> {
   return (
     db
       // Step 1: total up each customer's completed deals
@@ -149,9 +161,11 @@ async function getCustomerRows({ page, pageSize }: Pagination): Promise<Customer
         sql<StaffMember[]>`coalesce(cst.staff, '[]'::json)`.as("staff"),
         "ld.created_at as lastDealAt",
       ])
-      // Sort A to Z by name; id keeps customers with the same name in a fixed order.
+      // Sort by the chosen column. NULLS LAST keeps customers with no completed deal at the
+      // bottom when sorting by last deal, in both directions (Postgres puts nulls first for desc)
+      .orderBy(SORT_COLUMNS[sort], (ob) => (dir === "asc" ? ob.asc() : ob.desc()).nullsLast())
+      // Ties (same name, same spend, same date) are ordered by id, so the order is always fixed.
       // That fixed order is what makes paging reliable: no customer is skipped or repeated
-      .orderBy("c.full_name")
       .orderBy("c.id")
       // Only the rows for the requested page, e.g. page 2 of 25 skips 25 and takes the next 25.
       // Kysely sends both numbers as query parameters ($1, $2), never pasted into the SQL
