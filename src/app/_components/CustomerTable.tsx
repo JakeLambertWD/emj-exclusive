@@ -1,4 +1,4 @@
-import { getCustomers } from "@/server/customers/queries";
+import { getCustomers } from "@/server/customers/get-customers";
 import { formatGbp, formatUtcDate } from "@/utils/format";
 import {
   Badge,

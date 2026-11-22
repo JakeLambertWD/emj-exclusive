@@ -1,4 +1,4 @@
-import type { StaffMember } from "@/server/customers/queries";
+import type { StaffMember } from "@/server/customers/get-customers";
 import { Badge, Group, Text, VisuallyHidden } from "@mantine/core";
 import { EmptyValue } from "./EmptyValue";
 
