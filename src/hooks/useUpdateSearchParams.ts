@@ -15,7 +15,11 @@ export function useUpdateSearchParams() {
 
   function updateSearchParams(changes: Record<string, string>) {
     const params = new URLSearchParams(searchParams.toString());
-    for (const [key, value] of Object.entries(changes)) params.set(key, value);
+    for (const [key, value] of Object.entries(changes)) {
+      // An empty value removes the param, so choosing "All" leaves a clean URL
+      if (value === "") params.delete(key);
+      else params.set(key, value);
+    }
 
     startTransition(() => {
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });

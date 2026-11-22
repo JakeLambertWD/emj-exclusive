@@ -1,7 +1,9 @@
 import { db } from "@/server/db";
 import type { ProductCategory } from "@/server/db-types";
+import type { Filters } from "@/utils/filters";
 import { sql } from "kysely";
 import "server-only";
+import { matchingCustomers } from "./matching-customers";
 
 export type DashboardStats = {
   totalCustomers: number;
@@ -11,12 +13,13 @@ export type DashboardStats = {
   mostPopularCategory: ProductCategory | null;
 };
 
-export async function getDashboardStats(): Promise<DashboardStats> {
+export async function getDashboardStats(filters: Filters): Promise<DashboardStats> {
   return (
     db
-      // Step 1: the customers the dashboard is describing (search and filters narrow this later)
-      .with("matching_customers", (qb) => qb.selectFrom("customers").select("id"))
-      // Step 2: every completed deal belonging to those customers, across their full history
+      // Step 1: the customers the dashboard is describing: the same ones the table lists, across every page
+      .with("matching_customers", () => matchingCustomers(filters))
+      // Step 2: every completed deal belonging to those customers, across their full history.
+      // Not just deals in the selected category or with the selected staff member
       .with("completed_deals", (qb) =>
         qb
           .selectFrom("deals as d")

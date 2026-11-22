@@ -1,4 +1,5 @@
 import { getCustomers } from "@/server/customers/get-customers";
+import { readFilters } from "@/utils/filters";
 import { formatGbp, formatUtcDate } from "@/utils/format";
 import { readPagination, type SearchParams } from "@/utils/pagination";
 import { readSort } from "@/utils/sorting";
@@ -23,7 +24,8 @@ export async function CustomerTable({ searchParams }: { searchParams: Promise<Se
   const params = await searchParams;
   const { page: requestedPage, pageSize } = readPagination(params);
   const sort = readSort(params);
-  const { customers, totalCount, page } = await getCustomers({ page: requestedPage, pageSize, ...sort });
+  const filters = readFilters(params);
+  const { customers, totalCount, page } = await getCustomers({ page: requestedPage, pageSize, ...sort, ...filters });
 
   return (
     <>

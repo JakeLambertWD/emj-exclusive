@@ -1,7 +1,9 @@
 import { db } from "@/server/db";
 import type { ProductCategory } from "@/server/db-types";
+import type { Filters } from "@/utils/filters";
 import type { Pagination } from "@/utils/pagination";
 import type { Sort } from "@/utils/sorting";
+import { matchingCustomers } from "./matching-customers";
 import { sql } from "kysely";
 import "server-only";
 
@@ -30,23 +32,23 @@ export type CustomerPage = {
   page: number;
 };
 
-export type CustomerQuery = Pagination & Sort;
+export type CustomerQuery = Pagination & Sort & Filters;
 
-export async function getCustomers({ page, pageSize, sort, dir }: CustomerQuery): Promise<CustomerPage> {
+export async function getCustomers({ page, pageSize, sort, dir, category, staffId }: CustomerQuery): Promise<CustomerPage> {
   // Count first, so a page past the end (e.g. ?page=99) can be moved back to the last real page
-  const totalCount = await countCustomers();
+  const totalCount = await countCustomers({ category, staffId });
   const lastPage = Math.max(1, Math.ceil(totalCount / pageSize));
   const currentPage = Math.min(page, lastPage);
 
-  const customers = await getCustomerRows({ page: currentPage, pageSize, sort, dir });
+  const customers = await getCustomerRows({ page: currentPage, pageSize, sort, dir, category, staffId });
 
   return { customers, totalCount, page: currentPage };
 }
 
 // How many customers match, across every page
-async function countCustomers(): Promise<number> {
+async function countCustomers(filters: Filters): Promise<number> {
   const { count } = await db
-    .selectFrom("customers")
+    .selectFrom(matchingCustomers(filters).as("mc"))
     .select(sql<number>`count(*)::int`.as("count"))
     .executeTakeFirstOrThrow();
 
@@ -62,9 +64,11 @@ const SORT_COLUMNS = {
   lastDeal: sql`ld.created_at`,
 } as const;
 
-async function getCustomerRows({ page, pageSize, sort, dir }: CustomerQuery): Promise<CustomerRow[]> {
+async function getCustomerRows({ page, pageSize, sort, dir, category, staffId }: CustomerQuery): Promise<CustomerRow[]> {
   return (
     db
+      // Step 0: only the customers that match the filters (all of them when none are selected)
+      .with("matching_customers", () => matchingCustomers({ category, staffId }))
       // Step 1: total up each customer's completed deals
       .with("customer_metrics", (qb) =>
         qb
@@ -143,6 +147,9 @@ async function getCustomerRows({ page, pageSize, sort, dir }: CustomerQuery): Pr
       // Step 6: list customers and attach everything above.
       // Each CTE has at most one row per customer, so these joins can't double count.
       .selectFrom("customers as c")
+      // Keep only matching customers. Filters choose WHO is listed; each row's metrics
+      // still cover that customer's full completed history, across every category and staff member
+      .innerJoin("matching_customers as mc", "mc.id", "c.id")
       // LEFT JOIN includes every customer even ones with no completed deals
       .leftJoin("customer_metrics as m", "m.customer_id", "c.id")
       .leftJoin("favourite_category as fc", "fc.customer_id", "c.id")
