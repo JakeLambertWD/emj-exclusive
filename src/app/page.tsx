@@ -1,6 +1,7 @@
 import { Container, Title } from "@mantine/core";
 import { Suspense } from "react";
-import { CustomerTable, CustomerTableSkeleton } from "./_components/CustomerTable";
+import { CustomerTable } from "./_components/CustomerTable";
+import { CustomerTableSkeleton } from "./_components/CustomerTableSkeleton";
 
 export default function Home() {
   return (
