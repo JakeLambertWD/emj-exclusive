@@ -1,4 +1,5 @@
 import { Container, Stack, Title } from "@mantine/core";
+import { CustomerFiltersContainer } from "./_components/CustomerFiltersContainer";
 import { CustomerTableContainer } from "./_components/CustomerTableContainer";
 import { StatCardsContainer } from "./_components/StatCardsContainer";
 
@@ -12,7 +13,8 @@ export default function Home({ searchParams }: PageProps<"/">) {
       </Title>
 
       <Stack gap="xl">
-        <StatCardsContainer />
+        <CustomerFiltersContainer />
+        <StatCardsContainer searchParams={searchParams} />
         <CustomerTableContainer searchParams={searchParams} />
       </Stack>
     </Container>

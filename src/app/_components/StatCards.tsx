@@ -1,11 +1,14 @@
 import { getDashboardStats } from "@/server/customers/get-dashboard-stats";
+import { readFilters } from "@/utils/filters";
 import { formatCount, formatGbp } from "@/utils/format";
+import type { SearchParams } from "@/utils/pagination";
 import { SimpleGrid } from "@mantine/core";
 import { StatCard } from "./StatCard";
 
 // The five summary figures. They cover every matching customer, not just the current page
-export async function StatCards() {
-  const stats = await getDashboardStats();
+export async function StatCards({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const filters = readFilters(await searchParams);
+  const stats = await getDashboardStats(filters);
 
   return (
     <SimpleGrid cols={{ base: 1, xs: 2, md: 3, lg: 5 }} spacing="md">

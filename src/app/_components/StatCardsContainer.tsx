@@ -1,10 +1,11 @@
+import type { SearchParams } from "@/utils/pagination";
 import { Group, Text, Title } from "@mantine/core";
 import { Suspense } from "react";
 import { StatCards } from "./StatCards";
 import { StatCardsSkeleton } from "./StatCardsSkeleton";
 
 // The Summary section: its heading, scope label and the stat cards
-export function StatCardsContainer() {
+export function StatCardsContainer({ searchParams }: { searchParams: Promise<SearchParams> }) {
   return (
     <section aria-labelledby="summary-heading">
       <Group justify="space-between" align="baseline" mb="sm" gap="xs">
@@ -23,7 +24,7 @@ export function StatCardsContainer() {
         once the data arrives.
       */}
       <Suspense fallback={<StatCardsSkeleton />}>
-        <StatCards />
+        <StatCards searchParams={searchParams} />
       </Suspense>
     </section>
   );
