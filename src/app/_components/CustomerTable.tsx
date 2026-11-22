@@ -1,6 +1,7 @@
 import { getCustomers } from "@/server/customers/get-customers";
 import { formatGbp, formatUtcDate } from "@/utils/format";
 import { readPagination, type SearchParams } from "@/utils/pagination";
+import { readSort } from "@/utils/sorting";
 import {
   Badge,
   Table,
@@ -14,12 +15,15 @@ import {
 } from "@mantine/core";
 import { CustomerTablePagination } from "./CustomerTablePagination";
 import { EmptyValue } from "./EmptyValue";
+import { SortableTh } from "./SortableTh";
 import { StaffList } from "./StaffList";
 
 export async function CustomerTable({ searchParams }: { searchParams: Promise<SearchParams> }) {
   // Converts searchParams to 2 numbers 
-  const { page: requestedPage, pageSize } = readPagination(await searchParams);
-  const { customers, totalCount, page } = await getCustomers({ page: requestedPage, pageSize });
+  const params = await searchParams;
+  const { page: requestedPage, pageSize } = readPagination(params);
+  const sort = readSort(params);
+  const { customers, totalCount, page } = await getCustomers({ page: requestedPage, pageSize, ...sort });
 
   return (
     <>
@@ -27,14 +31,14 @@ export async function CustomerTable({ searchParams }: { searchParams: Promise<Se
         <Table striped highlightOnHover>
           <TableThead>
             <TableTr>
-              <TableTh>Customer</TableTh>
+              <SortableTh field="name" current={sort} label="Customer" />
               <TableTh>Company</TableTh>
               <TableTh>Email</TableTh>
-              <TableTh ta="right">Total spend</TableTh>
-              <TableTh ta="right">Total deals</TableTh>
+              <SortableTh field="spend" current={sort} label="Total spend" align="right" />
+              <SortableTh field="deals" current={sort} label="Total deals" align="right" />
               <TableTh>Favourite category</TableTh>
               <TableTh>Associated staff</TableTh>
-              <TableTh>Last deal (UTC)</TableTh>
+              <SortableTh field="lastDeal" current={sort} label="Last deal (UTC)" />
             </TableTr>
           </TableThead>
           <TableTbody>

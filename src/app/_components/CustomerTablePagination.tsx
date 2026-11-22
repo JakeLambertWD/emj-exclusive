@@ -1,9 +1,8 @@
 "use client";
 
+import { useUpdateSearchParams } from "@/hooks/useUpdateSearchParams";
 import { PAGE_SIZES } from "@/utils/pagination";
 import { Group, Loader, NativeSelect, Pagination, Text } from "@mantine/core";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
 
 type CustomerTablePaginationProps = {
   page: number;
@@ -13,26 +12,12 @@ type CustomerTablePaginationProps = {
 
 
 export function CustomerTablePagination({ page, pageSize, totalCount }: CustomerTablePaginationProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   // While the next page loads, the current one stays on screen and isPending is true
-  const [isPending, startTransition] = useTransition();
+  const { updateSearchParams: updateUrl, isPending } = useUpdateSearchParams();
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const firstShown = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const lastShown = Math.min(page * pageSize, totalCount);
-
-  // Keep every other URL param (search, filters, sort later) and change only these ones.
-  // replace rather than push, so paging doesn't fill the browser history.
-  function updateUrl(changes: Record<string, string>) {
-    const params = new URLSearchParams(searchParams.toString());
-    for (const [key, value] of Object.entries(changes)) params.set(key, value);
-
-    startTransition(() => {
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    });
-  }
 
   return (
     <Group justify="space-between" align="center" mt="md" gap="md">
