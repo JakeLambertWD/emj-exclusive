@@ -1,6 +1,6 @@
 import type { StaffMember } from "@/server/customers/get-customers";
 import { Badge, Group, Text, VisuallyHidden } from "@mantine/core";
-import { EmptyValue } from "./EmptyValue";
+import { EmptyValue } from "../../common/EmptyValue";
 
 // How many staff names to show before collapsing the rest into "+N more"
 const VISIBLE_STAFF = 2;

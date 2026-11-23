@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { CustomerTableEmpty } from "./CustomerTableEmpty";
 import { CustomerTablePagination } from "./CustomerTablePagination";
-import { EmptyValue } from "./EmptyValue";
+import { EmptyValue } from "../../common/EmptyValue";
 import { SortableTh } from "./SortableTh";
 import { StaffList } from "./StaffList";
 

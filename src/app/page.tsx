@@ -1,7 +1,7 @@
 import { Container, Stack, Title } from "@mantine/core";
-import { CustomerFiltersContainer } from "./_components/CustomerFiltersContainer";
-import { CustomerTableContainer } from "./_components/CustomerTableContainer";
-import { StatCardsContainer } from "./_components/StatCardsContainer";
+import { CustomerFiltersContainer } from "./_components/features/CustomerFilters/CustomerFiltersContainer";
+import { CustomerTableContainer } from "./_components/features/CustomerTable/CustomerTableContainer";
+import { StatCardsContainer } from "./_components/features/StatCards/StatCardsContainer";
 
 // searchParams is a Promise in Next 16. It is passed down unread, so only the parts
 // that need the URL wait for it (inside their Suspense boundary)
